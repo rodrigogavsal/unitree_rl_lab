@@ -78,6 +78,14 @@ case "$1" in
         shift
         ${python_exe} ${UNITREE_RL_LAB_PATH}/scripts/rsl_rl/train.py --headless "$@"
         ;;
+    -ep|--export_policy)
+        shift
+        ${python_exe} ${UNITREE_RL_LAB_PATH}/scripts/rsl_rl/export_policy.py "$@"
+        ;;
+    -ed|--export_data)
+        shift
+        ${python_exe} ${UNITREE_RL_LAB_PATH}/scripts/rsl_rl/export_data.py "$@"
+        ;;
     *) # unknown option
         ;;
 esac

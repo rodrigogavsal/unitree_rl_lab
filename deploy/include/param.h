@@ -42,6 +42,7 @@ inline std::string VERSION = "1.0.0.1";
 inline std::filesystem::path bin_path;
 inline std::filesystem::path proj_dir;
 inline std::filesystem::path config_dir;
+inline std::string target_dir_name = "";
 inline YAML::Node config;
 
 inline std::filesystem::path get_bin_path() {
@@ -83,11 +84,22 @@ inline void load_config_file()
     }
 }
 
-inline std::filesystem::path parser_policy_dir(std::filesystem::path policy_dir)
-{
+inline std::filesystem::path parser_policy_dir(std::filesystem::path policy_dir){
     // Load Policy
     if (policy_dir.is_relative()) {
         policy_dir = param::proj_dir / policy_dir;
+    }
+
+    // If the user passed the -d parameter, force that folder directly
+    if (!param::target_dir_name.empty()) {
+        // Hacemos un .parent_path() para quitar "unitree_go2_velocity" y quedarnos en "logs/rsl_rl/"
+        // Luego le concatenamos lo que el usuario haya escrito en -d
+        policy_dir = policy_dir.parent_path() / param::target_dir_name;
+        
+        if (!std::filesystem::exists(policy_dir)) {
+            spdlog::error("The specified directory does not exist: {}", policy_dir.string());
+            exit(1);
+        }
     }
 
     // If there is no `exported` folder in this folder,
@@ -119,8 +131,7 @@ inline std::filesystem::path parser_policy_dir(std::filesystem::path policy_dir)
 namespace po = boost::program_options;
 
 //※ This function must be called at the beginning of main() function
-inline po::variables_map helper(int argc, char** argv) 
-{
+inline po::variables_map helper(int argc, char** argv) {
     bin_path = get_bin_path();
     load_config_file();
 
@@ -130,6 +141,8 @@ inline po::variables_map helper(int argc, char** argv)
         ("version,v", "show version")
         ("log", "record log file")
         ("network,n", po::value<std::string>()->default_value(""), "dds network interface")
+        ("domain,i", po::value<int>()->default_value(1), "dds domain id (1 for MuJoCo, 0 for real robot)")
+        ("dir,d", po::value<std::string>(), "Specify policy directory name (e.g. 2026-01-23_19-06-30)")
         ;
 
     po::variables_map vm;
@@ -145,6 +158,9 @@ inline po::variables_map helper(int argc, char** argv)
     {
         std::cout << "Version: " << VERSION << std::endl;
         exit(0);
+    }
+    if (vm.count("dir")) {
+        target_dir_name = vm["dir"].as<std::string>();
     }
 
 #ifndef NDEBUG

@@ -7,16 +7,13 @@
 #include "isaaclab/envs/mdp/actions/joint_actions.h"
 #include "isaaclab/envs/mdp/terminations.h"
 
-class State_RLBase : public FSMState
-{
+class State_RLBase : public FSMState {
 public:
     State_RLBase(int state_mode, std::string state_string);
     
-    void enter()
-    {
+    void enter() {
         // set gain
-        for (int i = 0; i < env->robot->data.joint_stiffness.size(); ++i)
-        {
+        for (int i = 0; i < env->robot->data.joint_stiffness.size(); ++i) {
             lowcmd->msg_.motor_cmd()[i].kp() = env->robot->data.joint_stiffness[i];
             lowcmd->msg_.motor_cmd()[i].kd() = env->robot->data.joint_damping[i];
             lowcmd->msg_.motor_cmd()[i].dq() = 0;
@@ -32,24 +29,29 @@ public:
             const auto dt = std::chrono::duration_cast<clock::duration>(desiredDuration);
 
             // Initialize timing
-            auto sleepTill = clock::now() + dt;
+            
+            if (env->alg) { env->alg->reset_state(); }
             env->reset();
-
-            while (policy_thread_running)
-            {
+            auto sleepTill = clock::now() + dt;
+            
+            while (policy_thread_running){
                 env->step();
-
-                // Sleep
+                auto now = clock::now();
+            if (now >= sleepTill) {
+                // Si la IA tardó demasiado, reseteamos la línea temporal
+                // para evitar el "bucle de la muerte".
+                sleepTill = now + dt; 
+            } else {
                 std::this_thread::sleep_until(sleepTill);
                 sleepTill += dt;
+                }
             }
         });
     }
 
     void run();
     
-    void exit()
-    {
+    void exit() {
         policy_thread_running = false;
         if (policy_thread.joinable()) {
             policy_thread.join();
