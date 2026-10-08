@@ -12,7 +12,7 @@ import pathlib
 import sys
 
 sys.path.insert(0, f"{pathlib.Path(__file__).parent.parent}")
-from deprecated.TFG_server_src.unitree_rl_lab.scripts.list_envs import import_packages  # noqa: F401
+from list_envs import import_packages  # noqa: F401
 
 sys.path.pop(0)
 
@@ -28,7 +28,7 @@ import argcomplete
 from isaaclab.app import AppLauncher
 
 # local imports
-import deprecated.TFG_server_src.unitree_rl_lab.scripts.rsl_rl.cli_args as cli_args  # isort: skip
+import cli_args  # isort: skip
 
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL.")

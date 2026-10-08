@@ -13,7 +13,7 @@ from importlib.metadata import version
 from isaaclab.app import AppLauncher
 
 # local imports
-import deprecated.TFG_server_src.unitree_rl_lab.scripts.rsl_rl.cli_args as cli_args  # isort: skip
+import cli_args  # isort: skip
 
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL.")
