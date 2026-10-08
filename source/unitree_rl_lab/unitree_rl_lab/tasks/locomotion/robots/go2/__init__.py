@@ -18,8 +18,6 @@ gym.register(
         # Apuntamos a tu nuevo archivo .py (asumiendo que las clases se siguen llamando RobotEnvCfg y RobotPlayEnvCfg)
         "env_cfg_entry_point": f"{__name__}.lidar_velocity_env_cfg:RobotEnvCfg",
         "play_env_cfg_entry_point": f"{__name__}.lidar_velocity_env_cfg:RobotPlayEnvCfg",
-        
-        # El cerebro (PPO) sigue siendo el mismo, la red neuronal se adaptará sola al nuevo tamaño de entrada
-        "rsl_rl_cfg_entry_point": f"unitree_rl_lab.tasks.locomotion.agents.rsl_rl_ppo_cfg:BasePPORunnerCfg",
+        "rsl_rl_cfg_entry_point": f"unitree_rl_lab.tasks.locomotion.agents.rsl_rl_ppo_cfg:LidarPPORunnerCfg",
     },
 )

@@ -18,8 +18,8 @@ from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 
-from unitree_rl_lab.assets.robots.unitree import UNITREE_GO2_CFG as ROBOT_CFG
-from unitree_rl_lab.tasks.locomotion import mdp
+from deprecated.TFG_server_src.unitree_rl_lab.source.unitree_rl_lab.unitree_rl_lab.assets.robots.unitree import UNITREE_GO2_CFG as ROBOT_CFG
+from deprecated.TFG_server_src.unitree_rl_lab.source.unitree_rl_lab.unitree_rl_lab.tasks.locomotion import mdp
 
 COBBLESTONE_ROAD_CFG = terrain_gen.TerrainGeneratorCfg(
     size=(8.0, 8.0),
@@ -47,7 +47,7 @@ COBBLESTONE_ROAD_CFG = terrain_gen.TerrainGeneratorCfg(
         ),
         "pyramid_stairs": terrain_gen.MeshPyramidStairsTerrainCfg(
             proportion=0.2,
-            step_height_range=(0.05, 0.23),
+            step_height_range=(0.05, 0.25),
             step_width=0.3,
             platform_width=3.0,
             border_width=1.0,
@@ -55,7 +55,7 @@ COBBLESTONE_ROAD_CFG = terrain_gen.TerrainGeneratorCfg(
         ),
         "pyramid_stairs_inv": terrain_gen.MeshInvertedPyramidStairsTerrainCfg(
             proportion=0.2,
-            step_height_range=(0.05, 0.23),
+            step_height_range=(0.05, 0.25),
             step_width=0.3,
             platform_width=3.0,
             border_width=1.0,
@@ -223,18 +223,23 @@ class ObservationsCfg:
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel, scale=0.2, clip=(-100, 100), noise=Unoise(n_min=-0.2, n_max=0.2))
         projected_gravity = ObsTerm(func=mdp.projected_gravity, clip=(-100, 100), noise=Unoise(n_min=-0.05, n_max=0.05))
         velocity_commands = ObsTerm(
-            func=mdp.generated_commands, clip=(-100, 100), params={"command_name": "base_velocity"}
+            func=mdp.generated_commands, 
+            clip=(-100, 100), 
+            params={"command_name": "base_velocity"}
         )
         joint_pos_rel = ObsTerm(func=mdp.joint_pos_rel, clip=(-100, 100), noise=Unoise(n_min=-0.01, n_max=0.01))
         joint_vel_rel = ObsTerm(
-            func=mdp.joint_vel_rel, scale=0.05, clip=(-100, 100), noise=Unoise(n_min=-1.5, n_max=1.5)
+            func=mdp.joint_vel_rel, 
+            scale=0.05, clip=(-100, 100), 
+            noise=Unoise(n_min=-1.5, 
+            n_max=1.5)
         )
         last_action = ObsTerm(func=mdp.last_action, clip=(-100, 100))
 
         def __post_init__(self):
-            # self.history_length = 5
             self.enable_corruption = True
             self.concatenate_terms = True
+            self.history_length = 10
 
     # observation groups
     policy: PolicyCfg = PolicyCfg()
@@ -259,7 +264,7 @@ class ObservationsCfg:
         )
 
         def __post_init__(self):
-            self.history_length = 5
+            self.history_length = 10
 
     # privileged observations
     critic: CriticCfg = CriticCfg()
@@ -339,6 +344,41 @@ class RewardsCfg:
         params={
             "threshold": 1,
             "sensor_cfg": SceneEntityCfg("contact_forces", body_names=["Head_.*", ".*_hip", ".*_thigh", ".*_calf"]),
+        },
+    )
+
+    feet_height_body = RewTerm(
+        func=mdp.feet_height_body,  
+        weight=-0.5,  
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*_foot"),
+            "command_name": "base_velocity", 
+            "target_height": 0.12,  
+            "tanh_mult": 1.0,
+        },
+    )
+
+    feet_stumble = RewTerm(
+        func=mdp.feet_stumble,
+        weight=-1.0,
+        params={"sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot")},
+    )
+
+    feet_contact_without_cmd = RewTerm(
+        func=mdp.feet_contact_without_cmd,
+        weight=0.2,  
+        params={
+            "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*_foot"),
+            "command_name": "base_velocity"
+        },
+    )
+
+    feet_too_near = RewTerm(
+        func=mdp.feet_too_near,
+        weight=-0.5,
+        params={
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*_foot"),
+            "threshold": 0.10  
         },
     )
 

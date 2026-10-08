@@ -7,13 +7,12 @@
 
 """Launch Isaac Sim Simulator first."""
 
-
 import gymnasium as gym
 import pathlib
 import sys
 
 sys.path.insert(0, f"{pathlib.Path(__file__).parent.parent}")
-from list_envs import import_packages  # noqa: F401
+from deprecated.TFG_server_src.unitree_rl_lab.scripts.list_envs import import_packages  # noqa: F401
 
 sys.path.pop(0)
 
@@ -29,7 +28,7 @@ import argcomplete
 from isaaclab.app import AppLauncher
 
 # local imports
-import cli_args  # isort: skip
+import deprecated.TFG_server_src.unitree_rl_lab.scripts.rsl_rl.cli_args as cli_args  # isort: skip
 
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL.")
@@ -93,6 +92,10 @@ import torch
 from datetime import datetime
 
 from rsl_rl.runners import OnPolicyRunner  # TODO: Consider printing the experiment name in the terminal.
+from unitree_rl_lab.tasks.locomotion.agents.custom_actor_critic_go2 import  CustomActorCriticBlind, CustomActorCriticLidar
+import rsl_rl.runners.on_policy_runner as _rsl_runner_module
+_rsl_runner_module.CustomActorCriticBlind = CustomActorCriticBlind
+_rsl_runner_module.CustomActorCriticLidar = CustomActorCriticLidar
 
 import isaaclab_tasks  # noqa: F401
 from isaaclab.envs import (
